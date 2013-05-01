@@ -1,0 +1,110 @@
+ldsped (1.16)
+
+  * monitor message was mistakenly cleared after sending to the 
+    first connection. fixed.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  november 2010
+
+ldsped (1.16b3)
+
+  * extra checks in the installation script. Now it always should
+    construct a valid PHG probe
+  * unregistering a call did send a response, which confused
+    digi_ned. Removed the response (since the agwpe specs specify
+    the application has not to expect one)
+  * fixing the probe, position data where missing
+  * APRSQ implemented
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  march 2010
+
+ldsped (1.15)
+
+  * an installation script was made
+  * a helper application (latlon) tries to find ones location
+    by querying aprs.fi
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  december 2009
+
+ldsped (1.14)
+
+  * APRSS, APRSP, APRST, PING? directed queries will be answered
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  december 2009
+
+ldsped (1.12)
+
+  * A mal placed close() in processframe() caused a socket
+    to stay open in certain cases after the client has disconnected.
+    ldsped did eventually run out of filedescriptors after running 
+    for quite some time.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  november 2009
+
+ldsped (1.11)
+
+  * Check to see if malloc() gives us memory. Error if not.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  october 2009
+
+ldsped (1.10)
+
+  * Release
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  september 2009
+
+ldsped (1.10b12)
+
+  * Changed the ax25 connection timeout system so ldsped uses the
+    complete OS function to make ax25 connections (before, a ldsped-specific
+    timeout system was used)
+  * Unregistering calls will automaticly end all associated ax25 connections
+    (estabished and pending ones)
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  9 august 2009
+
+ldsped (1.10b11)
+
+  * Removed bug in Y-frame response to allow winlink connections
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  july 2009
+
+ldsped (1.10b10)
+
+  * Created separate config and makefile files so ldsped has not to be
+    incorporated in ax25-tools any more
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  june 2009
+
+ldsped (1.10b3)
+
+  * Added a lot of functionality to make it possible to make connection
+    oriented connections. A lot of frames had to be implemented.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  may 2009
+
+ldsped (1.03)
+
+  * Corrected Makefile : localstatedir changed since the mheardd data could
+    not be found
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  3 may 2009
+
+ldsped (1.02)
+
+  * Completed missing code for inserting the correct From/To headers for m-frames.
+    VE2DBE's Radio Mobile program relies on them.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  19 may 2008
+
+ldsped (1.01)
+
+  * Corrected bug where it was impossible to have read/write connections when using passwords.
+    Side effect : MRTG connections were not possible when using passwords
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  5 november 2007
+
+ldsped (1.0)
+
+  * Initial Release.
+
+ -- Lieven De Samblanx <on7lds@amsat.org>  25 april 2006

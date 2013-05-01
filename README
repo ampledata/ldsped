@@ -1,0 +1,10 @@
+ldsped
+======
+
+before compiling, please read the INSTALL file
+
+
+ldsped has to be run as root since it has to connect to system sockets
+
+  - Lieven <on7lds@amsat.org>
+

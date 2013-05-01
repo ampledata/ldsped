@@ -1,0 +1,91 @@
+.TH ldsped 8 "April 2006" Linux "Linux System Managers Manua"
+.SH NAME
+ldsped \- provide a agw-like packet interface from linux
+.SH SYNOPSIS
+.B ldsped [-d] [-l[l][l][l][l]] [-v]
+.SH DESCRIPTION
+.LP
+.B ldsped
+will act like the windows agw packet engine (agwpe). After reading the configuration
+file /etc/ax25/ldsped.conf, 
+.B ldsped
+will wait for connections on the socket(s) specified in this file. It will then 
+-with some limitations- act like an agw packet engine.
+.br
+.B
+ldsped
+will process all frames except y (total outstanding frames for a port), and c
+(non standard AX25 connection). H frames, for that matter, will only be processed if
+.BR mheardd (8)
+is running on your system. M frames are processed, but without returning a T frame.
+.br
+AX25 connections can be made (C frame), but registering a call will not (yet) open a listening socket.
+.B ldsped
+will not send differtent sorts of information frames (U,I,S,T) to the application.
+.br
+All this is sufficient, however, for a lot of different clients to function properly.
+.br
+
+.br
+As an extra,
+.B ldsped
+provides a PGHR probe and a TRAFFIC object. See 
+.BR ldsped.conf (5)
+for more info. Finally, there is an optional socket where the traffic stats
+can be read, i.e. for a program as MRTG to make some nice graphs.
+.br
+
+.br
+
+To use client programs with 
+.BR ldsped
+:
+.br
+Just start your program and point to the
+.B ldsped
+daemon.
+.B ldsped
+will report all linux ax25 ports, with their call and description.
+.br
+
+.br
+Several programs are known to function well. Programs that have been tested are :
+.br
+UI-view (since
+.B ldsped
+development started to be able to run UI-view with a linux TNC server),
+xastir, outpost, radio mobile, agwmontcp, agwtermtcp, etc.
+
+.br
+.SH OPTIONS
+.TP 5
+.BI "\-d"
+Become daemon (default is not to).
+.TP 5
+.BI "\-l"
+Syslog logging. Use more l's to be more verbose. The 'loglevel' option in the config
+file overrules this option.
+.TP 5
+.BI "\-v"
+Displays the version number and some copyright information.
+.SH NOTES
+.LP
+Following signals can be send to
+.B ldsped
+:
+.TP 10
+.BI "SIGUSR1"
+The program dumps status info (in syslog if in daemon mode).
+.TP 10
+.BI "SIGUSR2"
+The program wil reload the config file (but socket options will be ignored).
+.br
+.SH FILES
+.LP
+/etc/ax25/ldsped.conf
+.br
+.SH "SEE ALSO"
+.BR ldsped.conf (5),
+.BR mheardd (8).
+.SH AUTHOR
+Lieven De Samblanx, ON7LDS, on7lds@amsat.org

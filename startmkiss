@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Script for mkiss/kissattach when using Unix98 pty's and ax25-tools >= 0.0.10
+#
+# Copyright (C) 2010, Lieven De Samblanx, ON7LDS. All rights reserved
+#
+# This software may be freely used, distributed, or modified, providing
+#  this header is not removed.
+#
+##############################################################################
+
+
+
+# Configure your mkiss command here, see also man mkiss
+MKISSCOMMAND="mkiss -s 9600 /dev/ttyS0 -x 2"
+
+# Now add as many port/address pairs as there are Unix98 ptys created with the
+# previous command 
+#  - the number of ptys is the argument of the -x switch
+#  - all in accordance with, ofcourse, your TNC(s) setup
+#  - with a maximum of 4 ptys
+
+KISSATTACH_PORT[1]="radio1"
+KISSATTACH_ADDR[1]="192.168.10.1"
+
+KISSATTACH_PORT[2]="radio2"
+KISSATTACH_ADDR[2]="192.168.11.1"
+
+#KISSATTACH_PORT[3]="radio3"
+#KISSATTACH_ADDR[3]="192.168.12.1"
+
+#KISSATTACH_PORT[4]="radio4"
+#KISSATTACH_ADDR[4]="192.168.13.1"
+
+
+
+########################################################################################
+## Nothing to configure beyond this line                                              ##
+########################################################################################
+MKISS=$($MKISSCOMMAND)
+if [ $? != 0 ]; then
+    echo "Could not start mkiss, exiting ..."
+    exit
+fi
+echo ""
+PTYLIST=$(echo $MKISS | awk -F ":" '{print $2}' | awk -F " " '{print $1" "$2" "$3" "$4}')
+echo "mkiss started, waiting on $(echo $PTYLIST | wc -w) pty's"
+echo ""
+i=1
+for PTY in $(echo $PTYLIST)
+do
+    echo "attaching on $PTY ... "
+    echo -n "   "
+    if [ ${KISSATTACH_PORT[$i]} ]; then
+        kissattach $PTY ${KISSATTACH_PORT[$i]} ${KISSATTACH_ADDR[$i]}
+        if [ $? == 0 ]; then
+		echo "done."
+		echo ""
+        else
+		echo "*** failed ***"
+		echo ""
+        fi
+        let i++
+    else
+	echo "*** ERROR *** "
+	echo "   This script is misconfigured."
+	echo "   There are not enough port/address definitions !"
+	echo "*** failed ***"
+	echo ""
+    fi
+done
+
+

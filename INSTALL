@@ -1,0 +1,32 @@
+Installation Instructions for ldsped
+====================================
+
+
+To build it you type:
+        ./configure
+        make
+        make install
+
+By default, it will install the files in /usr.  To change this
+so that binaries go in /usr and the conf files go in /etc :
+	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var
+	make
+	make install
+
+
+For debian and the like (i.e. Ubuntu) run
+	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man
+
+If not, neccesary files will not be found.
+
+
+To install the example configuration file type
+	make installconf
+
+
+To install ldsped and create a working configuration file
+	./install-ldsped
+
+
+
+  - Lieven <on7lds@amsat.org>

@@ -1,0 +1,274 @@
+#!/bin/bash
+
+#
+#  ldsped - agwpe linux replacement
+#
+#  Installation script for the binary package
+#
+#  Copyright (C) 2006-2009, Lieven De Samblanx, ON7LDS. All rights reserved
+#
+#
+
+
+INSTALL_PREFIX=/usr
+MANPATH=/usr/share/man
+
+#########################################
+
+
+CONFIGFILE=/etc/ax25/ldsped.conf
+
+SEDFILE=install-ldsped-sed
+
+	echo ""
+if [ "$1" = "-f" ]; then
+    #  Force install
+    echo "Forcing install of ldsped: this will replace an existing configuration !"
+     INVAL=no
+    read -p "Are you sure? (no) " INVAL
+    [ "$INVAL" = "" ] && INVAL=no
+    [ "$INVAL" = "y" ] && INVAL=yes
+    [ "$INVAL" = "n" ] && INVAL=no
+    if [ "no" = "$INVAL" ]; then
+        echo "Aborting installation"
+        exit 1
+    fi
+    echo ""
+    echo "Starting clean install..."
+else
+    # Existing config ?
+    if [ -f $CONFIGFILE ]; then
+	echo "There is an existing ldsped configuration file."
+	echo "specify -f to this script to force a clean install (replace all existing data)"
+	echo ""
+    exit 1
+    fi
+fi
+
+rm -f install-ldsped-sed
+
+ask_user()
+{
+    ANS=$1
+    read -p "$2 ($ANS): " INVAL
+    if [ "" != "$INVAL" ]; then
+        ANS=$INVAL
+    fi
+    LAST=$ANS
+    echo "s/$3$1/$3$ANS/" >> $SEDFILE
+    if [ $1 == "ON7LDS" ]; then
+	echo "s/x, $ANS/x, $1/" >> $SEDFILE
+    fi
+
+}
+
+
+
+echo ""
+echo "installation path prefix : $INSTALL_PREFIX"
+echo "manpage directory        : $MANPATH"
+echo ""
+echo "If you want to change them, type ^C now and change the variables"
+echo " at the beginning of this script."
+echo ""
+
+
+echo ""
+ask_user "ON7LDS" "Your call" ""
+CALL=$LAST
+
+echo ""
+echo "Loglevel setting :"
+echo " 0 : Fatal errors and severe errors. Affects correct functioning of ldsped "
+echo " 1 : Important information and errors concerning the (mis)configuration of ldsped"
+echo "      or the misuse by the client program"
+echo " 2 : Information about connections (making/breaking) of client programs"
+echo " 3 : ldsped going ONAIR"
+echo " 4 : Info about data being send and received with the client programs"
+echo " 5 : More info about what ldsped is doing and sending to the clients "
+echo ""
+ask_user "3" "loglevel" "loglevel "
+
+echo ""
+echo "Port configuration : ldsped standard"
+echo " (edit $CONFIGILE manually if you want to change the port configuration)"
+echo "  8000 : read/write port"
+echo "  8001 : read only port"
+#echo "  8002 : read only port"
+echo "  8005 : MRTG port"
+echo ""
+echo "Password configuration : No passwords"
+echo " (edit $CONFIGILE manually if you want password restrictions)"
+echo ""
+
+
+LAT="5059.39N"
+LON="00453.90E"
+
+echo "Trying to find your position (checking if aprs.fi knows about you) ..."
+if [ -x latlon ]; then
+    OIFS=$IFS;IFS=$'\n';
+    set -- $(./latlon $CALL)
+    if [[ $1 == "OK" ]] ; then
+	CLL="$2" LAT="$3" LON="$4"
+	echo "I found $CLL at $LAT $LON"
+	echo ""
+    else
+	echo "I did not find you. Please give me your coordinates."
+    fi
+    IFS="$OIFS"
+fi
+
+echo "! WARNING ! : lat/lon syntax will not be checked"
+ask_user "$LAT" "  Your latitude  : DDMM.mmX  where X is N or S" "trafficpos "
+ask_user "$LON" "  Your longitude : DDDMM.mmX where X is E or W" "\\\\"
+echo ""
+echo "Constructing PHG probe :"
+echo " Help can be found at"
+echo " www.on7lds.net --> ldsped --> faq --> 'How do I control the probe beacon ?'"
+
+#-----POWER
+ANS=25
+POW=100
+until [ $POW -gt -1 ] && [ $POW -lt 10 ] ; do
+    read -p "  Radio TX power ($ANS): " INVAL
+    if [ "" != "$INVAL" ]; then
+        ANS=$INVAL
+    fi
+
+    if [ $ANS -lt 1 ]; then POW=0;
+    elif [ $ANS -lt 4 ]; then POW=1;
+    elif [ $ANS -lt 9 ]; then POW=2;
+    elif [ $ANS -lt 16 ]; then POW=3;
+    elif [ $ANS -lt 25 ]; then POW=4;
+    elif [ $ANS -lt 36 ]; then POW=5;
+    elif [ $ANS -lt 49 ]; then POW=6;
+    elif [ $ANS -lt 64 ]; then POW=7;
+    elif [ $ANS -lt 81 ]; then POW=8;
+    else POW=9;
+    fi
+done
+
+#-----HEIGHT
+log(){ local x=$1 n=2 l=-1;if [ "$2" != "" ];then n=$x;x=$2;fi;while((x));do let l+=1 x/=n;done;return $l; }
+
+
+ANS=20
+HEIGHT=100
+until [ $HEIGHT -gt -1 ] && [ $HEIGHT -lt 10 ] ; do
+    read -p "  Height above local terrain (AGL not ASL) ($ANS): " INVAL
+    if [ "" != "$INVAL" ]; then
+        ANS=$INVAL
+    fi
+
+    if [ $ANS -lt 10 ]; then ANS=10; fi
+    log $ANS/10
+    HEIGHT=$?
+#echo "HEIGTH=$HEIGHT"
+done
+
+
+#-----GAIN
+ANS=3
+GAIN=100
+until [ $GAIN -gt -1 ] && [ $GAIN -lt 10 ] ; do
+    read -p "  Antenna gain (0...9 dBd) ($ANS): " INVAL
+    if [ "" != "$INVAL" ]; then
+        ANS=$INVAL
+    fi
+
+    GAIN=$ANS
+    if [ $ANS -lt 0 ]; then GAIN=0;.
+    elif [ $ANS -gt 9 ]; then GAIN=9;
+    fi
+#echo "GAIN=$GAIN"
+done
+
+
+#-----DIRECTION
+ANS=0
+DIR=100
+until [ $DIR -gt -1 ] && [ $DIR -lt 10 ] ; do
+    read -p "  Antenna direction (0=omni 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=N) ($ANS): " INVAL
+    if [ "" != "$INVAL" ]; then
+        ANS=$INVAL
+    fi
+
+    DIR=$ANS
+    if [ $ANS -lt 0 ]; then DIR=0;
+    elif [ $ANS -gt 8 ]; then DIR=0;
+    fi
+#echo "DIR=$DIR"
+done
+
+
+#-----PER HOUR
+ANS=4
+read -p "  Probes per hour (1..9) ($ANS): " INVAL
+if [ "" != "$INVAL" ]; then
+    ANS=$INVAL
+fi
+
+PERHOUR=$ANS
+if [ $ANS -lt 1 ]; then PERHOUR=1;
+elif [ $ANS -gt 9 ]; then PERHOUR=9;
+fi
+
+#echo "PERHOUR=$PERHOUR"
+
+
+PROBESTRING="PHG$POW$HEIGHT$GAIN$DIR$PERHOUR"
+#echo $PROBESTRING
+
+PROBELEN=${#PROBESTRING}
+if [ $PROBELEN == 8 ]; then
+    echo "s/PHG70302/$PROBESTRING/" >> $SEDFILE
+else
+    echo "Severe error in constructing PHG probe ($PROBESTRING)."
+    echo "Please restart."
+    exit 100
+fi
+echo ""
+
+
+
+read -p "Will you use Paclink with ldsped ? (no):" INVAL
+    [ "$INVAL" = "" ] && INVAL=no
+    [ "$INVAL" = "y" ] && INVAL=yes
+    [ "$INVAL" = "n" ] && INVAL=no
+    if [ "yes" = "$INVAL" ]; then
+	echo "s/port_info_compatible 0/port_info_compatible 1/" >> $SEDFILE
+    fi
+
+
+
+echo ""
+
+sed -f $SEDFILE ldsped.conf.example > $CONFIGFILE
+rm -f install-ldsped-sed
+
+echo "$CONFIGFILE was written"
+echo "Please check $CONFIGFILE before starting ldsped."
+
+echo ""
+
+#-#-#-#-# Binary
+cp ldsped $INSTALL_PREFIX/sbin
+chown root.root $INSTALL_PREFIX/sbin/ldsped
+chmod 755 $INSTALL_PREFIX/sbin/ldsped
+
+cp ldsped.8 $MANPATH/man8
+chown root.root $MANPATH/man8/ldsped.8
+chmod 644 $MANPATH/man8/ldsped.8
+
+cp ldsped.conf.5 $MANPATH/man5
+chown root.root $MANPATH/man5/ldsped.conf.5
+chmod 644 $MANPATH/man5/ldsped.conf.5
+
+echo "ldsped binary and manpages installed."
+echo ""
+
+
+
+
+

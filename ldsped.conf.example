@@ -1,0 +1,94 @@
+#  ldsped.c - agwpe linux replacement
+#
+#  Copyright (C) 2006,2009 Lieven De Samblanx, ON7LDS. All rights reserved
+#
+#  This is the ldsped configuration file.
+
+#Loglevel, higher = more verbose.
+#Overrules the commandline setting
+#
+#The commandline setting will be replaced from the moment
+# this keyword is processed. If we set it here, in the beginning
+# of the config file, it will be applied immediately.
+
+loglevel 4
+
+
+
+# define packet engine ports
+ro *:8000
+rw *:8001
+#ro *:8002
+
+#define passwords
+#password ON7LDS LDS
+#password ON4DVT DVT
+
+#define traffic object : 
+# - socket (for mrtg)
+trafficport *:8005
+
+#station status text
+stationtext $V (check www.on7lds.net)
+
+# - amount of traffic status beacons per hour
+traffic 4
+
+# - Name of the object
+trafficname TRAFMON
+trafficpath WIDE3-3
+
+# - Owner call
+#trafficcall ON7LDS
+
+# - position
+trafficpos 5059.39N\00453.90E?
+
+#       -1 = send traffic object on all ports
+# 0,1, ... = send traffic object on specified port
+trafficsendport -1
+
+#define probe :
+
+probestring PHG70302/ldsped probe
+probepath WIDE2-2
+probesendport -1
+#probecall ON7LDS
+
+
+#If you use Paclink, set this to 1
+#It produces a less readable portinfo string,
+# but Paclink is expecting a rather strict string layout
+#No other programs have been mentioned to require this
+
+port_info_compatible 0
+
+
+#Since there seems to be no way for ldsped to find out
+# these parameters, you should put them here, so ldsped
+# can answer the 'g' frame.
+#If you application(s) do not use the 'g' frame, it
+# is not necessary to set the parameters here.
+#Again : these paramaters are ONLY informational for ldsped
+# they are not used anywhere (only for answering the 'g' frame)
+TX_DELAY  25
+TX_TAIL    4
+PERSIST  128
+SLOTTIME  15
+MAXFRAME   6
+
+
+#----- APRSQ query scripts :
+
+#scriptuser is the UID which will be used to execute the scripts.
+# if none set, 65534 (user nobody) will be used
+#scriptuser 1000
+
+#scriptgroup is the GID which will be used to execute the scripts.
+# if none set, 65534 (group nogroup) will be used
+#scriptgroup 1000
+
+#Here come the query / script pairs.
+scriptpath datum /bin/date
+scriptpath tijd /bin/date +%H:%M:%S
+scriptpath up /usr/bin/uptime

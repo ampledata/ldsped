@@ -1,0 +1,155 @@
+ldsped, an agw-like packet interface from linux
+Copyright (C) 2006, Lieven De Samblanx, ON7LDS.
+              All rights reserved
+-----------------------------------------------
+
+
+ldsped will process P,R,G,g,X,x,Y,H,m,M,V,C,c,D,d,K,k frames and
+will not handle or send y,c,U,I,S,T frames.
+
+G frames : ldsped will report all linux ax25 ports, port call between ()
+	    and description as reported by the OS.
+	   When in 'compatible' portinfo mode, a less human readable
+	   string is produced. It uses syntax and layout of the agwpe
+	   portinfo string. Only Paclink is known to need this.
+H frames, will only be processed if mheardd(8) is running on your system.
+	    if not, an error will be given at startup
+M frames are processed, but without returning a T frame.
+
+Y frames are answered based on the data of the /proc filesystem
+	    (giving a good approach)
+
+X frames do register the call, but does not open listening sockets
+
+All this is sufficient for a number of agwpe-compatible programs.
+
+I tried some client programs on my windows machine, and despite these
+not-always-well-written programs it all seems to function well.
+Some programs rely to heavy on the expected layout of the frames: with the early
+beta ldsped versions, slightly inexpected framelayout (a space on the wrong place
+could do the trick) crashed some of these programs.
+
+Several programs are known to function well. Programs that have been / are been
+tested are :
+    UI-view  (since  ldsped  development  started to be able to run UI-view
+                     with a linux TNC server)
+    xastir,
+    outpost,
+    radio  mobile,
+    Paclink,
+    UISS,
+    agwmontcp,
+    agwtermtcp, etc.
+
+If you experience problems, please tell me about it. Include enough information
+so I can try to reproduce the problem (program used, config, wireshark captures, ...).
+
+If you have improvements, please let me know. I'm not that good as a C programmer.
+
+
+Extra functions
+---------------
+
+Extra functions include a PGHR probe, traffic monitor and interface for mrtg
+ (http://oss.oetiker.ch/mrtg/)
+
+  TRAFFIC object
+  -------------
+
+    Specify the number of traffic beacons to be send each hour
+
+traffic 6
+
+    will generate a traffic object 6 times an hour = every 10 minutes.
+
+
+trafficname LDSPED
+
+    This option specifies the object's name. When you do not give this
+    option, the default object name TRAFFIC is used.
+
+    Specify the position of the object :
+
+trafficpos 5059.39N\00453.90E?
+
+    The traffic object will be owned by the call of the sending port,
+    unless you specify an optional call who will be the owner :
+
+trafficcall ON7LDS
+
+    The object wil be sent on only one, or on all ports :
+           -1 = send traffic object on all ports
+     0,1, ... = send traffic object on specified port
+
+trafficpath WIDE3-3
+
+    The unproto path used to send the traffic object
+    (sepatate more items with spaces)
+
+
+trafficsendport -1
+
+    When specifying the 'trafficport' option, one is able to question ldsped
+    with mrtg to generate stats about the local traffic.
+    i.e. :
+
+  MRTG port & MRTG configuration
+  ------------------------------
+
+  NB : the traffic object does not need to be defined for this to work.
+
+trafficport *:8005
+
+    will install port 8005 as traffic-stats port. 
+    Warning : Upon reading, the counters are zeroed !
+    mrtg config example :
+
+Target[ldsped]: `nc localhost 8005`
+Options[ldsped]: gauge, nopercent, growright
+MaxBytes[ldsped]: 3000
+#WithPeak[ldsped]: dwm
+Title[ldsped]: AX25 ldsped Probe stats
+YLegend[ldsped]: packets
+Legend1[ldsped]: Number of packets
+Legend2[ldsped]: Number of packets
+Shortlegend[ldsped]: pkts
+WithPeak[ldsped]: wmy
+
+
+  PHG probe
+  ---------
+
+    specify probestring & path
+    (see http://eng.usna.navy.mil/~bruninga/aprs/probes.txt and
+     http://www.aprs.net/vm/DOS/PROTOCOL.HTM or others
+     or use an internet calculator to constuct the right probe definition) :
+
+probestring PHG70302/ldsped probe
+
+probepath WIDE3-3
+probesendport -1
+probecall ON7LDS
+
+
+Logging
+-------
+
+ldsped can log some operational information.
+When started in console mode, all info will be printed to screen.
+In daemon mode, the info is logged to syslog.
+
+The logging is switched on by specifying the -l option on the
+commandline. More l's instruct ldsped to be more verbose.
+Alternatively, the 'loglevel' keyword in the config file specifies
+the loglevel. The commandline option will be overruled, the moment
+this keyword is processed. If you set a high loglevel and you want
+to see info concerning the config file, set the logging keyword
+first in the configuration file.
+If you just want a high logging level starting up, and a low loglevel
+once the program is running, start the program with the -lllll option
+and set 'loglevel 1' at the end of the config file.
+
+I hope this progam is useful to you.
+
+ON7LDS, Lieven De Samblanx
+on7lds@amsat.org
