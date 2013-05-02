@@ -84,7 +84,12 @@ am__remove_distdir = \
   { test ! -d $(distdir) \
     || { find $(distdir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(distdir); }; }
+am__remove_releasedir = \
+  { test ! -d $(releasedir) \
+    || { find $(releasedir) -type d ! -perm -200 -exec chmod u+w {} ';' \
+         && rm -fr $(releasedir); }; }
 DIST_ARCHIVES = $(distdir).tar.gz
+DIST_ARCHIVES = $(releasedir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
