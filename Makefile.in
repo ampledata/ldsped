@@ -78,7 +78,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 RELEASEFILES = $(COMMON_DOCS) $(sbin_PROGRAMS) $(man_MANS)
 distdir = $(PACKAGE)-$(VERSION)
-releasedir = $(distdir)
+releasedir = $(distdir)-$(UNAME_PLATFORM)
 top_distdir = $(distdir)
 am__remove_distdir = \
   { test ! -d $(distdir) \
@@ -180,6 +180,7 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 etcfiles = ldsped.conf.example
+UNAME_PLATFORM = `uname -p`
 #logcall
 LDADD = $(AX25_LIB)
 INCLUDES = -DAX25_SYSCONFDIR=\""$(AX25_SYSCONFDIR)"\" \
