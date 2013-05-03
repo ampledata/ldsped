@@ -1,0 +1,11 @@
+config.log
+*.o
+Makefile
+config.h
+ldsped
+latlon
+aclocal.m4
+config.status
+stamp-h1
+ldsped*gz
+ldsped-*/

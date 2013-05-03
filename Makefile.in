@@ -32,10 +32,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 sbin_PROGRAMS = ldsped$(EXEEXT) latlon$(EXEEXT)
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
+COMMON_DOCS = README AUTHORS COPYING ChangeLog INSTALL NEWS
+DIST_COMMON = $(COMMON_DOCS) $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
-	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	depcomp install-sh missing
+	$(top_srcdir)/configure depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -76,13 +76,20 @@ MANS = $(man_MANS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+RELEASEFILES = $(COMMON_DOCS) $(sbin_PROGRAMS) $(man_MANS)
 distdir = $(PACKAGE)-$(VERSION)
+releasedir = $(distdir)-$(UNAME_PLATFORM)
 top_distdir = $(distdir)
 am__remove_distdir = \
   { test ! -d $(distdir) \
     || { find $(distdir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(distdir); }; }
+am__remove_releasedir = \
+  { test ! -d $(releasedir) \
+    || { find $(releasedir) -type d ! -perm -200 -exec chmod u+w {} ';' \
+         && rm -fr $(releasedir); }; }
 DIST_ARCHIVES = $(distdir).tar.gz
+DIST_ARCHIVES = $(releasedir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
@@ -173,6 +180,7 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 etcfiles = ldsped.conf.example
+UNAME_PLATFORM = `uname -p`
 #logcall
 LDADD = $(AX25_LIB)
 INCLUDES = -DAX25_SYSCONFDIR=\""$(AX25_SYSCONFDIR)"\" \
@@ -704,6 +712,47 @@ installconf:
 	  echo " $(INSTALL_DATA) $$p $(DESTDIR)$(AX25_SYSCONFDIR)/$$p"; \
 	  $(INSTALL_DATA) $$p $(DESTDIR)$(AX25_SYSCONFDIR)/$$p; \
 	done
+
+releasedir: $(RELEASEFILES)
+	$(am__remove_releasedir)
+	test -d $(releasedir) || mkdir $(releasedir)
+	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	list='$(RELEASEFILES)'; \
+	  release_files=`for file in $$list; do echo $$file; done | \
+	  sed -e "s|^$$srcdirstrip/||;t" \
+	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
+	case $$release_files in \
+	  */*) $(MKDIR_P) `echo "$$release_files" | \
+			   sed '/\//!d;s|^|$(releasedir)/|;s,/[^/]*$$,,' | \
+			   sort -u` ;; \
+	esac; \
+	for file in $$release_files; do \
+	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
+	  if test -d $$d/$$file; then \
+	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
+	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
+	      cp -pR $(srcdir)/$$file $(releasedir)$$dir || exit 1; \
+	    fi; \
+	    cp -pR $$d/$$file $(releasedir)$$dir || exit 1; \
+	  else \
+	    test -f $(releasedir)/$$file \
+	    || cp -p $$d/$$file $(releasedir)/$$file \
+	    || exit 1; \
+	  fi; \
+	done
+	-find $(releasedir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
+	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
+	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
+	  ! -type d ! -perm -444 -exec $(install_sh) -c -m a+r {} {} \; \
+	|| chmod -R a+r $(releasedir)
+
+release-gzip: releasedir
+	tardir=$(releasedir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(releasedir).tar.gz
+	$(am__remove_releasedir)
+
+release: releasedir release-gzip
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
